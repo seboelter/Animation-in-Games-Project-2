@@ -23,69 +23,80 @@ class Node {
 int deltaT = 50;
 //interval for timing
 int interval = 0;
+float COR = 0.7; // Coefficient of restitution
 
 //Link Length
-float link_length = 1;
+float link_length = 25;
 
 //Mass of Node
 float m = 1;
 
-//Energy
-float kinetic_energy = 0;
-float potential_energy = 0; 
+//radius of node
+int r=7;
 
 //Number of nodes
 static int numNodes = 5;
-static int numWidth = 5;
 
-//List to hold nodes
-Node links[] = new Node[numNodes];
-ArrayList<Node[]> linksWidth = new ArrayList<Node[]>();
+//Lists to hold nodes, 6 hanging strings
+Node links0[] = new Node[numNodes];
+Node links1[] = new Node[numNodes];
+Node links2[] = new Node[numNodes];
+Node links3[] = new Node[numNodes];
+Node links4[] = new Node[numNodes];
+Node links5[] = new Node[numNodes];
+
+//Populate the external ball
+Node externalNode;
 
 //Populate Nodes
 
 //Initial node positions
 //Establishing base
-Vec2 base_pos = new Vec2(3, 2);
+Vec2 base_pos0 = new Vec2(100, 200);
+Vec2 base_pos1 = new Vec2(150, 200);
+Vec2 base_pos2 = new Vec2(200, 200);
+Vec2 base_pos3 = new Vec2(250, 200);
+Vec2 base_pos4 = new Vec2(300, 200);
+Vec2 base_pos5 = new Vec2(350, 200);
+
+ArrayList<Node[]> linksWidth = new ArrayList<Node[]>();
 
 void setup() {
-  size(500, 500);
+  size(700, 700);
+  surface.setTitle("Project 2");
   linksWidth = new ArrayList<Node[]>();
-  surface.setTitle("Homework 2");
-  scene_scale = width / 10.0f;
   populateNodes();
-  output = createWriter("graphData.txt");
- 
 }
 
 void populateNodes(){
-  //Creating a base_pos that can be added to for both x and y
-  //This inidcates a corner of the cloth
-  float base_pos_update = base_pos.x;
-  float base_pos_update_y = base_pos.y;
-  for (int j = 0; j < numWidth; j++){
-    //Going through nodes and adding positions
-    Node link[] = new Node[numNodes];
-    for (int i = 0; i < numNodes; i++){
-      link[i] = new Node(new Vec2(base_pos_update, base_pos_update_y));
-      base_pos_update = base_pos_update + 1;
-      //println(link[i].pos);
-    }
-    //println(link);
-    //This assumes that the blanket is either a square
-    linksWidth.add(link);
-    //println(links[j].pos);
-    base_pos_update_y = base_pos_update_y + 1;
-    base_pos_update = base_pos.x;
+  //Creating a base_pos that can be added to
+  float base_pos_update = base_pos0.y;
+  //Going through nodes and adding positions
+  for (int i = 0; i < numNodes; i++){
+    links0[i] = new Node(new Vec2(base_pos0.x, base_pos_update));
+    links1[i] = new Node(new Vec2(base_pos1.x, base_pos_update));
+    links2[i] = new Node(new Vec2(base_pos2.x, base_pos_update));
+    links3[i] = new Node(new Vec2(base_pos3.x, base_pos_update));
+    links4[i] = new Node(new Vec2(base_pos4.x, base_pos_update));
+    links5[i] = new Node(new Vec2(base_pos5.x, base_pos_update));
+    base_pos_update = base_pos_update + 35;
   }
+  //links3[2] = new Node(new Vec2(base_pos3.x+30, base_pos_update+30));
+  linksWidth.add(links0);
+  linksWidth.add(links1);
+  linksWidth.add(links2);
+  linksWidth.add(links3);
+  linksWidth.add(links4);  
+  linksWidth.add(links5);
+  
+  externalNode = new Node(new Vec2(circleX, circleY));
 }
 
 // Gravity
-Vec2 gravity = new Vec2(0, 10);
+Vec2 gravity = new Vec2(0, 80);
 
 
 // Scaling factor for the scene
-float scene_scale = width / 10.0f;
 
 //Total Length Error
 float total_length_error;
@@ -94,50 +105,73 @@ float total_length_error;
 //Num Substeps
 int num_substeps = 1;
 //Num Relaxation Steps
-int num_relaxation_steps = 100;
+int num_relaxation_steps = 10;
+
+float circleX = 50;
+float circleY = 100;
+float circleR = 10;
 
 
 void update_physics(float dt) {
   // Semi-implicit Integration
-  for (int j = 0; j < numNodes; j++){
-    for (int i = 1; i < numWidth; i++){
-      linksWidth.get(j)[i].last_pos = linksWidth.get(j)[i].pos;
-      //links[i].last_pos = links[i].pos;
-      linksWidth.get(j)[i].vel = linksWidth.get(j)[i].vel.plus(gravity.times(dt));
-      //links[i].vel = links[i].vel.plus(gravity.times(dt));
-      //links[i].pos = links[i].pos.plus(links[i].vel.times(dt));
-      linksWidth.get(j)[i].pos = linksWidth.get(j)[i].pos.plus(linksWidth.get(j)[i].vel.times(dt));
+  for (int i = 0; i < linksWidth.size(); i++){
+    for (int j = 1; j < numNodes; j++){
+      linksWidth.get(i)[j].last_pos = linksWidth.get(i)[j].pos;
+      linksWidth.get(i)[j].vel = linksWidth.get(i)[j].vel.plus(gravity.times(dt));
+      linksWidth.get(i)[j].pos = linksWidth.get(i)[j].pos.plus(linksWidth.get(i)[j].vel.times(dt));
+        for (int k = 0; k < linksWidth.size(); k++){
+          for (int l = 0; l < numNodes; l++){
+              if (k != i && l != j){
+                if (linksWidth.get(i)[j].pos.distanceTo(linksWidth.get(k)[l].pos) < (r+r)){
+                    Vec2 normal = (linksWidth.get(i)[j].pos.minus(linksWidth.get(k)[l].pos)).normalized();
+                    linksWidth.get(i)[j].pos = linksWidth.get(k)[l].pos.plus(normal.times(r).times(.5));
+                    linksWidth.get(k)[l].pos = linksWidth.get(i)[j].pos.plus(normal.times(r).times(.5));
+                    Vec2 velNormal = normal.times(dot(linksWidth.get(i)[j].vel,normal));
+                    linksWidth.get(i)[j].vel.subtract(velNormal.times(.5 + COR));
+                    linksWidth.get(k)[l].vel.subtract(velNormal.times(.5 + COR));
+                }
+              }
+          }
+       }
+       if (linksWidth.get(i)[j].pos.distanceTo(externalNode.pos) < (r+r)){
+            Vec2 normal = (linksWidth.get(i)[j].pos.minus(externalNode.pos)).normalized();
+            linksWidth.get(i)[j].pos = externalNode.pos.plus(normal.times(r).times(.5));
+            
+            Vec2 velNormal = normal.times(dot(externalNode.vel,normal));
+            linksWidth.get(i)[j].vel.subtract(velNormal.times(.5 + COR));
+
+     }
+       
     }
   }
-  
+
   // Constrain the distance between nodes to the link length
-  for (int k = 0; k < num_relaxation_steps; k++) {
-      for (int j = 0; j < numNodes; j++){
-        for (int i = 1; i < numWidth; i++){
-          Vec2 delta = linksWidth.get(j)[i].pos.minus(linksWidth.get(j)[i-1].pos);
-          float delta_len = delta.length();
-          float correction = delta_len - link_length;
-          Vec2 delta_normalized = delta.normalized();
-          
-          linksWidth.get(j)[i].pos = linksWidth.get(j)[i].pos.minus(delta_normalized.times(correction / 2));
-          linksWidth.get(j)[i-1].pos = linksWidth.get(j)[i-1].pos.minus(delta_normalized.times(correction / 2));         
-        }
+  for (int i = 0; i < num_relaxation_steps; i++) {
+       for (int j = 0; j < linksWidth.size(); j++){
+           for (int k = 1; k < numNodes; k++){
+              Vec2 delta = linksWidth.get(j)[k].pos.minus(linksWidth.get(j)[k-1].pos);
+              float delta_len = delta.length();
+              float correction = delta_len - link_length;
+              Vec2 delta_normalized = delta.normalized();
+              linksWidth.get(j)[k].pos = linksWidth.get(j)[k].pos.minus(delta_normalized.times(correction / 2));
+              linksWidth.get(j)[k-1].pos = linksWidth.get(j)[k-1].pos.plus(delta_normalized.times(correction / 2));
+        
+            }
+        
       }
-      float base_pos_update = base_pos.x;
-      float base_pos_update_y = base_pos.y;
-      for (int i = 1; i < numWidth; i++){
-        //fix the base node in place
-        linksWidth.get(i)[0].pos = new Vec2(base_pos_update, base_pos_update_y);
-        base_pos_update = base_pos_update + 1;
-        base_pos_update_y = base_pos_update_y +0;
-      
-      }
+
+     linksWidth.get(0)[0].pos = base_pos0;
+     linksWidth.get(1)[0].pos = base_pos1;
+     linksWidth.get(2)[0].pos = base_pos2;
+     linksWidth.get(3)[0].pos = base_pos3;
+     linksWidth.get(4)[0].pos = base_pos4;
+     linksWidth.get(5)[0].pos = base_pos5;
+
   }
-  
-  //// Update the velocities (PBD)
-  for (int j = 0; j < numNodes; j++){
-    for (int i = 1; i < numWidth; i++){
-    linksWidth.get(j)[i].vel = linksWidth.get(j)[i].pos.minus(linksWidth.get(j)[i].last_pos).times(1 / dt); 
+  // Update the velocities (PBD)
+    for (int i = 0; i < linksWidth.size(); i++){
+      for (int j = 1; j < numNodes; j++){
+         linksWidth.get(i)[j].vel = linksWidth.get(i)[j].pos.minus(linksWidth.get(i)[j].last_pos).times(1 / dt);   
     }
   }
 
@@ -145,8 +179,19 @@ void update_physics(float dt) {
 
 boolean paused = false;
 
+
 void keyPressed() {
+  output.flush();  
+  output.close();  
   exit(); 
+}
+
+void mouseDragged() {
+  if (dist(mouseX, mouseY, circleX, circleY) < 2*r && mousePressed) {
+      externalNode.pos = new Vec2(mouseX, mouseY);
+      circleX = mouseX;
+      circleY = mouseY;
+  } 
 }
 
 float time = 0;
@@ -154,46 +199,43 @@ void draw() {
   float dt = 1.0 / 20; //Dynamic dt: 1/frameRate;
  
   if (!paused) {
-
-
+    if( millis() - interval > deltaT){
+      interval = millis();
       for (int i = 0; i < num_substeps; i++) {
         time += dt / num_substeps;
         update_physics(dt / num_substeps);
       }
 
+    }
+
   }
-
-
+  
 
   background(255);
   stroke(0);
   strokeWeight(2);
+  
+  //Draw circle for interaction
+  fill(0, 255, 0);
+  stroke(0);
+  ellipse(circleX, circleY, r, r);
 
   // Draw Nodes (green with black outline)
   fill(0, 255, 0);
   stroke(0);
-  strokeWeight(0.02 * scene_scale);
-
-  for (int i = 0; i < numWidth; i++){
+  strokeWeight(1);
+  for (int i = 0; i < linksWidth.size(); i++){
     for (int j = 0; j < numNodes; j++){
-      ellipse(linksWidth.get(i)[j].pos.x * scene_scale,linksWidth.get(i)[j].pos.y * scene_scale, 0.3 * scene_scale, 0.3 * scene_scale);      
+     ellipse(linksWidth.get(i)[j].pos.x, linksWidth.get(i)[j].pos.y, r,r); 
     }
   }
 
-  //Draw Links (black)
+  // Draw Links (black)
   stroke(0);
-  strokeWeight(0.02 * scene_scale);
-  
-  for (int i = 1; i < numWidth; i++){
-    for (int j = 0; j < numNodes; j++){
-      line(linksWidth.get(i-1)[j].pos.x * scene_scale, linksWidth.get(i-1)[j].pos.y * scene_scale, linksWidth.get(i)[j].pos.x * scene_scale, linksWidth.get(i)[j].pos.y * scene_scale);
-      line(linksWidth.get(j)[i-1].pos.x * scene_scale, linksWidth.get(j)[i-1].pos.y * scene_scale, linksWidth.get(j)[i].pos.x * scene_scale, linksWidth.get(j)[i].pos.y * scene_scale);
-      //diagonal lines
-      //line(linksWidth.get(i-1)[j-1].pos.x * scene_scale, linksWidth.get(i-1)[j-1].pos.y * scene_scale, linksWidth.get(i)[j].pos.x * scene_scale, linksWidth.get(i)[j].pos.y * scene_scale);
-      //line(linksWidth.get(i-1)[j-1].pos.x * scene_scale, linksWidth.get(i)[j-1].pos.y * scene_scale, linksWidth.get(i)[j].pos.x * scene_scale, linksWidth.get(i-1)[j-1].pos.y * scene_scale);
+  strokeWeight(1);
+    for (int i = 0; i < linksWidth.size(); i++){
+      for (int j = 1; j < numNodes; j++){
+       line(linksWidth.get(i)[j-1].pos.x, linksWidth.get(i)[j-1].pos.y, linksWidth.get(i)[j].pos.x, linksWidth.get(i)[j].pos.y); 
+      }
     }
-}
-  //for (int j = 1; j < links.length; j++){
-  //   line(links[j-1].pos.x * scene_scale, links[j-1].pos.y * scene_scale, links[j].pos.x * scene_scale, links[j].pos.y * scene_scale); 
-  //}
 }

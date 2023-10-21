@@ -127,8 +127,8 @@ void update_physics(float dt) {
                     linksWidth.get(i)[j].pos = linksWidth.get(k)[l].pos.plus(normal.times(r).times(.5));
                     linksWidth.get(k)[l].pos = linksWidth.get(i)[j].pos.plus(normal.times(r).times(.5));
                     Vec2 velNormal = normal.times(dot(linksWidth.get(i)[j].vel,normal));
-                    linksWidth.get(i)[j].vel.subtract(velNormal.times(.5 + COR));
-                    linksWidth.get(k)[l].vel.subtract(velNormal.times(.5 + COR));
+                    linksWidth.get(i)[j].vel.subtract(velNormal.times(.5));
+                    linksWidth.get(k)[l].vel.subtract(velNormal.times(.5));
                 }
               }
           }

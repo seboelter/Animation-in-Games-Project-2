@@ -33,11 +33,15 @@ The camera system for this project was designed by Liam Tyler for CSCI 5611. Bel
 
 ## Physics Behind the Simulation
 
-The core physics simulation is based on:
+The cloth physics simulation is based on:
 1. **Gravity**: Each node in the ropes experiences gravitational force.
 2. **Spring Forces**: The forces between interconnected nodes simulate springs. The spring forces are calculated based on Hooke's Law.
 3. **Damping**: A damping force is applied to reduce oscillations and stabilize the system.
 4. **Collision**: The nodes interact with the floor and the spherical obstacle through collision detection and response.
+
+The fluid physics is based on:
+1. ** Density: each particle has local density calculated based on its distance to other neighboring particles.
+2. ** Pressue: Pressure for each particle is calculated based on local density and overall SPH denisty.  This is Clavet's approach.
 
 ### Key Functions:
 - **applyGravityToNodes()**: Applies gravitational force to all nodes.
@@ -46,12 +50,18 @@ The core physics simulation is based on:
 - **updateNodesUsingEulerIntegration()**: Updates node positions and velocities using the Euler integration method.
 - **handleFloorAndObstacleCollisions()**: Detects and handles collisions between nodes, the floor, and the obstacle.
 
-## Setup & Run
+## Setup & Run Cloth
 1. Ensure you have Processing installed.
 2. Open the provided .pde files in the Processing IDE.
 3. Click the "Run" button to start the simulation.
 4. Use the camera controls to navigate the scene.
 5. Move your mouse to reposition the obstacle in the simulation.
+
+## Setup & Run for Fluid
+1. Ensure you have Processing installed.
+2. Open the provided .pde files in the Processing IDE.
+3. Click the "Run" button to start the simulation.
+4. Click space to release particles to start "waves"
 
 ## Credits
 Created by Liam Tyler for CSCI 5611. The simulation incorporates a blend of graphics, user interaction, and physics for an interactive experience.

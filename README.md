@@ -40,8 +40,8 @@ The cloth physics simulation is based on:
 4. **Collision**: The nodes interact with the floor and the spherical obstacle through collision detection and response.
 
 The fluid physics is based on:
-1. ** Density: each particle has local density calculated based on its distance to other neighboring particles.
-2. ** Pressue: Pressure for each particle is calculated based on local density and overall SPH denisty.  This is Clavet's approach.
+1. **Density**: each particle has local density calculated based on its distance to other neighboring particles.
+2. **Pressue**: Pressure for each particle is calculated based on local density and overall SPH denisty.  This is Clavet's approach.
 
 ### Key Functions:
 - **applyGravityToNodes()**: Applies gravitational force to all nodes.
